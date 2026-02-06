@@ -4,16 +4,26 @@
     <meta charset="UTF-8">
     <title>Metro: Krizová situace</title>
     <style>
-        /* 1. NAČTENÍ VLASTNÍHO FONTU */
+        /* =========================================
+           1. FONTY
+           ========================================= */
         @font-face {
-            font-family: 'NeueHaas';
+            font-family: 'NeueHaasBold';
             src: url('NeueHaasDisplayBold.ttf'); 
         }
 
+        @font-face {
+            font-family: 'NeueHaasMedium';
+            src: url('NeueHaasDisplayMedium.ttf'); 
+        }
+
+        /* =========================================
+           2. ZÁKLADNÍ NASTAVENÍ
+           ========================================= */
         body {
             background-color: #000;
             color: white;
-            font-family: 'NeueHaas', 'Arial', sans-serif; 
+            font-family: 'NeueHaasBold', sans-serif;
             margin: 0;
             overflow: hidden;
             user-select: none;
@@ -37,60 +47,164 @@
         #ui-layer {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
+            display: block; 
             pointer-events: none;
             z-index: 10;
         }
 
-        /* TEXTY - ČISTÉ, BÍLÉ, STATICKÉ */
-        h1, h2, #countdown {
-            background: none;
-            padding: 10px 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: none;
-            display: none;
-            border: none;
-            color: #ffffff; /* Vše bílé */
+        /* MODRÁ LINKA - HARDCODED NASTAVENÍ */
+        #blue-line {
+            position: absolute;
+            width: 100%;
+            background-color: #005eb8;
+            left: 0;
+            
+            /* TADY JSOU TY ROZMĚRY NAPEVNO: */
+            height: 2px;
+            top: 22.3%;
+            
+            z-index: 15;
+            display: block !important;
         }
 
-        h1 { 
-            font-size: 50px; 
-            font-weight: 700; 
+        /* =========================================
+           3. ROZLOŽENÍ UI PRVKŮ
+           ========================================= */
+
+        /* A) START SCREEN - UPROSTŘED */
+        #start-container {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            transform: translateY(-50%);
+            text-align: center;
+            z-index: 20;
+            display: flex;
+            justify-content: center;
         }
-        
-        h2 { 
-            font-size: 35px; 
-            margin-bottom: 20px; 
-            font-weight: 700; 
-            /* ZDE BYLO BLIKÁNÍ - ODSTRANĚNO */
+
+        /* B) GAME TEXTY (Výzva) - NAHOŘE 15% */
+        .text-anchor-top {
+            position: absolute;
+            top: 15%; 
+            left: 0;
+            width: 100%;
+            display: none; 
+            flex-direction: column;
+            align-items: center;
+            z-index: 20;
         }
-        
+
+        /* C) MASHING UI (Chyba) - NAHOŘE 15% */
+        #mash-ui {
+            position: absolute;
+            top: 15%; 
+            left: 0;
+            width: 100%;
+            display: none; 
+            flex-direction: column;
+            align-items: center;
+            z-index: 25; 
+        }
+
+        /* D) ODPOČET - POSUNUTO NAHORU A ZVĚTŠENO */
         #countdown {
-            font-size: 120px;
-            margin-top: 20px;
+            font-family: 'NeueHaasBold', sans-serif;
+            
+            /* ZVĚTŠENO ze 700px na 800px */
+            font-size: 800px; 
+            
             font-weight: 900;
+            line-height: 1;
+            color: #ffffff;
+            opacity: 1;
+            
+            position: absolute;
+            
+            /* POSUNUTO VÝŠ (z 65% na 55%) */
+            top: 60%;
+            
+            left: 50%;
+            transform: translate(-50%, -50%);
+            
+            display: none;
+            z-index: 5; 
+        }
+
+        /* =========================================
+           4. TYPOGRAFIE
+           ========================================= */
+        
+        h1, h2, h3 { margin: 0; padding: 0; text-shadow: none; }
+
+        #start-text {
+            font-family: 'NeueHaasBold', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #ffffff;
+            font-size: 60px;
             line-height: 1;
         }
 
-        /* LOAD BAR - BÍLÝ */
+        .headline-top {
+            font-family: 'NeueHaasBold', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #ffffff;
+            font-size: 60px;
+            line-height: 1;
+            margin-bottom: 0px; 
+        }
+
+        .subheadline-bold {
+            font-family: 'NeueHaasBold', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #ffffff;
+            font-size: 60px;
+            line-height: 1;
+            margin-top: 10px; 
+        }
+
+        .subheadline-medium {
+            font-family: 'NeueHaasMedium', sans-serif;
+            font-size: 38px; 
+            text-transform: lowercase; 
+            color: #ffffff;
+            opacity: 1;
+            
+            
+            margin-top: 12px; 
+            
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+            font-weight: normal; 
+            line-height: 1;
+        }
+        
+        .subheadline-medium::first-letter {
+            text-transform: uppercase;
+        }
+
+        /* =========================================
+           5. LOAD BAR
+           ========================================= */
         #bar-frame {
-            width: 50%;
+            width: 40%;
             height: 40px;
-            border: 4px solid white; /* Rámeček bílý */
-            background: rgba(0,0,0,0.3); /* Pozadí lehce tmavé, aby byla vidět bílá výplň */
-            display: none;
+            border: 1px solid white;
+            background: rgba(0,0,0,0.5);
             position: relative;
         }
 
         #bar-fill {
             width: 0%;
             height: 100%;
-            background-color: #ffffff; /* VÝPLŇ JE TEĎ ČISTĚ BÍLÁ */
+            background-color: #ffffff;
             transition: width 0.1s linear;
         }
 
@@ -102,21 +216,32 @@
         <video id="player" muted playsinline></video>
         
         <div id="ui-layer">
-            <h1 id="main-text">STISKNI MEZERNÍK PRO START</h1>
+            <div id="blue-line"></div>
+
+            <div id="start-container">
+                <h1 id="start-text">STISKNI MEZERNÍK PRO START</h1>
+            </div>
+
+            <div id="game-text-wrapper" class="text-anchor-top">
+                <h2 class="headline-top">ZMÁČKNI NOUZOVÉ TLAČÍTKO</h2>
+                <h1 class="subheadline-bold">PRO ZASTAVENÍ SOUPRAVY!</h1>
+            </div>
+
             <div id="countdown">10</div>
             
-            <div id="mash-ui" style="display:none; width: 100%; display: flex; flex-direction: column; align-items: center;">
-                <h2 id="mash-text">TLAČÍTKO ZASEKLÉ! MAČKEJ!!</h2>
+            <div id="mash-ui">
+                <h2 class="headline-top">TLAČÍTKO JE NEFUNKČNÍ!</h2>
+                <h3 class="subheadline-medium">Zkus ho stlačit znovu, dokud se to nepovede!</h3>
                 <div id="bar-frame"><div id="bar-fill"></div></div>
             </div>
         </div>
     </div>
 
-    <p style="position: absolute; bottom: 10px; right: 20px; font-size: 14px; color: rgba(255,255,255,0.3);">OVLÁDÁNÍ: MEZERNÍK</p>
+    <p style="position: absolute; bottom: 10px; right: 20px; font-size: 14px; color: rgba(255,255,255,0.3); z-index: 30;">OVLÁDÁNÍ: MEZERNÍK</p>
 
     <script>
         // ==========================================
-        // ⚙️ NASTAVENÍ VIDEÍ
+        // ⚙️ NASTAVENÍ
         // ==========================================
         const V_01_INTRO    = 'video_01.mp4';
         const V_02_FAIL     = 'video_02.mp4';
@@ -129,14 +254,24 @@
         const MASH_DIFFICULTY = 25;
         const BAR_DECAY = 0.3;
 
+        // TOTO UŽ JE JEN PRO JISTOTU, HLAVNÍ JE TEĎ CSS
+        const VYSKA_LINKY = 2;   
+        const POZICE_LINKY = 19.6;  
+
         // ==========================================
         
         const video = document.getElementById('player');
-        const mainText = document.getElementById('main-text');
+        
+        const startContainer = document.getElementById('start-container');
+        const gameTextWrapper = document.getElementById('game-text-wrapper');
         const countdownEl = document.getElementById('countdown');
         const mashUI = document.getElementById('mash-ui');
         const barFill = document.getElementById('bar-fill');
-        const mashText = document.getElementById('mash-text');
+        const blueLine = document.getElementById('blue-line');
+
+        // Aplikace stylů linky (pojistka)
+        blueLine.style.height = VYSKA_LINKY + 'px';
+        blueLine.style.top = POZICE_LINKY + '%';
 
         let stav = 'START';
         let timerSmrti;
@@ -148,50 +283,52 @@
             video.src = src;
             video.loop = loop;
             video.currentTime = 0;
-            video.play().catch(e => console.log("Autoplay blocked"));
+            
+            let playPromise = video.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(_ => { })
+                .catch(error => {
+                    console.log("CHYBA: Autoplay zablokován:", error);
+                });
+            }
         }
 
         function startHry() {
             stav = 'START';
-            mainText.style.display = 'block';
-            mainText.innerText = "STISKNI MEZERNÍK PRO START";
-            mainText.style.color = '#ffffff';
-            mashUI.style.display = 'none';
-            mashText.style.display = 'none';
+            video.removeAttribute('src'); 
+            video.load();
+            
+            startContainer.style.display = 'flex';     
+            gameTextWrapper.style.display = 'none';    
+            mashUI.style.display = 'none';             
             countdownEl.style.display = 'none';
-            document.getElementById('bar-frame').style.display = 'none';
         }
 
         function spustitIntro() {
             stav = 'INTRO';
-            mainText.style.display = 'none';
+            startContainer.style.display = 'none';
             play(V_01_INTRO, false);
-
-            video.onended = () => {
-                vyzvaKZastaveni();
-            };
+            video.onended = () => { vyzvaKZastaveni(); };
         }
 
         function vyzvaKZastaveni() {
             stav = 'WAIT';
-            
-            mainText.style.display = 'block';
-            mainText.innerText = "ZMÁČKNI NOUZOVÉ TLAČÍTKO PRO ZASTAVENÍ SOUPRAVY!";
-            mainText.style.color = '#ffffff';
+            gameTextWrapper.style.display = 'flex';
             
             countdownEl.style.display = 'block';
             let zbyvajiciCas = CAS_NA_REAKCI / 1000;
             countdownEl.innerText = zbyvajiciCas;
-
+            
+            if (odpocetInterval) clearInterval(odpocetInterval);
+            
             odpocetInterval = setInterval(() => {
                 zbyvajiciCas--;
                 countdownEl.innerText = zbyvajiciCas;
                 if (zbyvajiciCas <= 0) clearInterval(odpocetInterval);
             }, 1000);
-
-            timerSmrti = setTimeout(() => {
-                prohra("nestihl");
-            }, CAS_NA_REAKCI);
+            
+            timerSmrti = setTimeout(() => { prohra("nestihl"); }, CAS_NA_REAKCI);
         }
 
         function glitchFaze() {
@@ -199,30 +336,21 @@
             clearTimeout(timerSmrti);
             clearInterval(odpocetInterval);
             
-            mainText.style.display = 'none';
+            gameTextWrapper.style.display = 'none'; 
             countdownEl.style.display = 'none';
             
             play(V_02_FAIL, false);
-
-            video.onended = () => {
-                startMashing();
-            };
+            video.onended = () => { startMashing(); };
         }
 
         function startMashing() {
             stav = 'MASHING';
             barValue = 0;
-            
-            mashUI.style.display = 'flex';
-            mashText.style.display = 'block';
-            document.getElementById('bar-frame').style.display = 'block';
-            
+            mashUI.style.display = 'flex'; 
             play(V_03_CLICK, false); 
-
-            timerSmrti = setTimeout(() => {
-                prohra("mashing_fail");
-            }, CAS_NA_MASHING);
-
+            
+            timerSmrti = setTimeout(() => { prohra("mashing_fail"); }, CAS_NA_MASHING);
+            
             if (gameLoop) clearInterval(gameLoop);
             gameLoop = setInterval(logicLoop, 50);
         }
@@ -238,9 +366,7 @@
             barValue += (100 / MASH_DIFFICULTY); 
             video.currentTime = 0;
             video.play();
-            if (barValue >= 100) {
-                vyhra();
-            }
+            if (barValue >= 100) { vyhra(); }
         }
 
         function vyhra() {
@@ -248,15 +374,8 @@
             clearTimeout(timerSmrti);
             clearInterval(gameLoop);
             mashUI.style.display = 'none'; 
-            
             play(V_04_A_RESCUE, false);
-
-            video.onended = () => {
-                mainText.style.display = 'block';
-                mainText.style.color = '#ffffff';
-                mainText.innerHTML = "SUPER VÝHRA!<br>ZACHRÁNIL JSI HO!";
-                setTimeout(startHry, 8000);
-            };
+            video.onended = () => { startHry(); };
         }
 
         function prohra(duvod) {
@@ -266,21 +385,17 @@
             clearInterval(gameLoop);
             clearInterval(odpocetInterval);
             
-            mainText.style.display = 'none';
+            startContainer.style.display = 'none';
+            gameTextWrapper.style.display = 'none';
             countdownEl.style.display = 'none';
             mashUI.style.display = 'none';
-
+            
             play(V_04_B_TRAGEDY, false);
-
-            video.onended = () => {
-                mainText.style.display = 'block';
-                mainText.style.color = '#ffffff';
-                mainText.innerText = "KONEC... SOUPRAVA NEZASTAVILA.";
-                setTimeout(startHry, 8000);
-            };
+            video.onended = () => { startHry(); };
         }
 
         document.addEventListener('keydown', (e) => {
+            console.log("Klávesa:", e.code, "| Stav:", stav);
             if (e.code === 'Space') {
                 if (stav === 'START') spustitIntro();
                 else if (stav === 'WAIT') glitchFaze();
