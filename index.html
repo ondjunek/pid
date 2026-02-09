@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metro Nouzové Tlačítko</title>
+    <style>
+        /* =========================================
+           1. FONTY (Zjednodušené názvy)
+           ========================================= */
+        @font-face {
+            font-family: 'MetroBold';
+            src: url('bold.ttf'); /* Ujisti se, že se soubor ve složce jmenuje bold.ttf */
+        }
+
+        @font-face {
+            font-family: 'MetroMedium';
+            src: url('medium.ttf'); /* Ujisti se, že se soubor ve složce jmenuje medium.ttf */
+        }
+
+        /* =========================================
+           2. ZÁKLADNÍ NASTAVENÍ
+           ========================================= */
+        body {
+            background-color: #000;
+            color: white;
+            font-family: 'MetroBold', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+            cursor: none; /* Neviditelný kurzor */
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* =========================================
+           3. UI PRVKY
+           ========================================= */
+
+        /* OBRAZOVKA: START */
+        #start-container {
+            position: absolute;
+            top: 50%; width: 100%;
+            transform: translateY(-50%);
+            text-align: center;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* OBRAZOVKA: VÝZVA (WAIT) */
+        #game-text-wrapper {
+            position: absolute;
+            top: 15%; width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* OBRAZOVKA: MASHING (MAČKÁNÍ) */
+        #mash-ui {
+            position: absolute;
+            top: 15%; width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* ODPOČET */
+        #countdown {
+            font-family: 'MetroBold', sans-serif;
+            font-size: 800px; 
+            font-weight: 900;
+            line-height: 1;
+            color: #ffffff;
+            
+            position: absolute;
+            top: 60%; left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        /* TYPOGRAFIE */
+        h1, h2, h3 { margin: 0; padding: 0; }
+
+        #start-text {
+            font-size: 60px; letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        .headline-top {
+            font-family: 'MetroBold', sans-serif;
+            font-size: 60px; letter-spacing: 2px; text-transform: uppercase;
+            margin-bottom: 0px;
+        }
+
+        .subheadline-bold {
+            font-family: 'MetroBold', sans-serif;
+            font-size: 60px; letter-spacing: 2px; text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        .subheadline-medium {
+            font-family: 'MetroMedium', sans-serif;
+            font-size: 38px; letter-spacing: 1px; font-weight: normal;
+            text-transform: lowercase;
+            margin-top: 10px; margin-bottom: 30px;
+        }
+        
+        .subheadline-medium::first-letter {
+            text-transform: uppercase;
+        }
+
+        /* LOADING BAR */
+        #bar-frame {
+            width: 26%; height: 15px;
+            border: 1px solid white;
+            background: rgba(0,0,0,0.5);
+            margin-top: 15px;
+            position: relative;
+        }
+
+        #bar-fill {
+            width: 0%; height: 100%;
+            background-color: #ffffff;
+            transition: width 0.05s linear;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <video id="player" muted playsinline></video>
+        
+        <div id="ui-layer">
+            
+            <div id="start-container">
+                <h1 id="start-text">STISKNI TLAČÍTKO PRO START</h1>
+            </div>
+
+            <div id="game-text-wrapper">
+                <h2 class="headline-top">ZMÁČKNI NOUZOVÉ TLAČÍTKO</h2>
+                <h1 class="subheadline-bold">PRO ZASTAVENÍ SOUPRAVY!</h1>
+            </div>
+
+            <div id="countdown">10</div>
+            
+            <div id="mash-ui">
+                <h2 class="headline-top">TLAČÍTKO JE NEFUNKČNÍ!</h2>
+                <h3 class="subheadline-medium">Zkus ho stlačit znovu dokud se to nepovede!</h3>
+                <div id="bar-frame"><div id="bar-fill"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚙️ KONFIGURACE
+        // ==========================================
+        const V_INTRO    = 'video_01.mp4';
+        const V_FAIL     = 'video_02.mp4';
+        const V_MASHING  = 'video_03.mp4'; // Pokud nemáš video_03, použij video_02
+        const V_WIN      = 'video_04_A.mp4';
+        const V_TRAGEDY  = 'video_04_B.mp4';
+
+        const CAS_NA_REAKCI = 10000; 
+        const CAS_NA_MASHING = 10000; 
+        const MASH_DIFFICULTY = 25; 
+        const BAR_DECAY = 0.3; 
+
+        // ==========================================
+        
+        const video = document.getElementById('player');
+        
+        const uiStart = document.getElementById('start-container');
+        const uiText = document.getElementById('game-text-wrapper');
+        const uiCountdown = document.getElementById('countdown');
+        const uiMash = document.getElementById('mash-ui');
+        const barFill = document.getElementById('bar-fill');
+
+        let stav = 'START';
+        let timerLogika;
+        let timerOdpocet;
+        let barValue = 0;
+        let gameLoop;
+
+        function playVideo(src, loop = false) {
+            video.src = src;
+            video.loop = loop;
+            video.currentTime = 0;
+            let p = video.play();
+            if (p !== undefined) {
+                p.catch(e => console.log("Autoplay block:", e));
+            }
+        }
+
+        function initGame() {
+            stav = 'START';
+            video.src = "";
+            video.load();
+            
+            uiStart.style.display = 'flex';
+            uiText.style.display = 'none';
+            uiMash.style.display = 'none';
+            uiCountdown.style.display = 'none';
+        }
+
+        function startIntro() {
+            stav = 'INTRO';
+            uiStart.style.display = 'none';
+            playVideo(V_INTRO, false);
+            video.onended = () => { phaseWait(); };
+        }
+
+        function phaseWait() {
+            stav = 'WAIT';
+            uiText.style.display = 'flex';
+            uiCountdown.style.display = 'block';
+            
+            let sec = CAS_NA_REAKCI / 1000;
+            uiCountdown.innerText = sec;
+            
+            if (timerOdpocet) clearInterval(timerOdpocet);
+            timerOdpocet = setInterval(() => {
+                sec--;
+                uiCountdown.innerText = sec;
+                if (sec <= 0) clearInterval(timerOdpocet);
+            }, 1000);
+
+            timerLogika = setTimeout(() => {
+                phaseEnd(false); 
+            }, CAS_NA_REAKCI);
+        }
+
+        function phaseGlitch() {
+            stav = 'GLITCH';
+            clearTimeout(timerLogika);
+            clearInterval(timerOdpocet);
+            
+            uiText.style.display = 'none'; 
+            uiCountdown.style.display = 'none';
+            
+            playVideo(V_FAIL, false);
+            video.onended = () => { phaseMashing(); };
+        }
+
+        function phaseMashing() {
+            stav = 'MASHING';
+            barValue = 0;
+            uiMash.style.display = 'flex'; 
+            
+            // Pokud nemáš video_03.mp4, kód tady může selhat (černá obrazovka).
+            // Ujisti se, že soubor existuje, nebo změň nahoře V_MASHING na 'video_02.mp4'
+            playVideo(V_MASHING, true); 
+            
+            timerLogika = setTimeout(() => { phaseEnd(false); }, CAS_NA_MASHING);
+            
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(() => {
+                if (barValue > 0) barValue -= BAR_DECAY;
+                if (barValue < 0) barValue = 0;
+                barFill.style.width = Math.min(barValue, 100) + '%';
+            }, 50);
+        }
+
+        function playerMash() {
+            barValue += (100 / MASH_DIFFICULTY); 
+            video.currentTime = 0;
+            video.play();
+            if (barValue >= 100) { 
+                phaseEnd(true); 
+            }
+        }
+
+        function phaseEnd(vyhra) {
+            if (stav === 'END') return;
+            stav = 'END';
+            
+            clearTimeout(timerLogika);
+            clearInterval(gameLoop);
+            clearInterval(timerOdpocet);
+            
+            uiStart.style.display = 'none';
+            uiText.style.display = 'none';
+            uiCountdown.style.display = 'none';
+            uiMash.style.display = 'none';
+            
+            if (vyhra) {
+                playVideo(V_WIN, false);
+            } else {
+                playVideo(V_TRAGEDY, false);
+            }
+
+            video.onended = () => { initGame(); };
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                if (stav === 'START') startIntro();
+                else if (stav === 'WAIT') phaseGlitch();
+                else if (stav === 'MASHING') playerMash();
+            }
+        });
+
+        initGame();
+
+    </script>
+</body>
+</html>
